@@ -9,7 +9,7 @@ permissions: write-all
 jobs:
   build:
     name: 'Xem quá trình'
-    if: github.repository == 'chamchamfy/RROM' && github.ref == 'refs/heads/main'
+    if: github.repository == 'huntersun/RROM' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-22.04
     env:
       NUMBIE: ${{ github.event.issue.number }}
