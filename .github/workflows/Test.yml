@@ -12,7 +12,7 @@ jobs:
       - name: 'Xem thông báo'
         run: |
           # Rom Rebuild
-          export SIZE='8.5'; export URL='https://orig.bigota.d.miui.com/V14.0.3.0.TKDTWXM/miui_VILITWGlobal_V14.0.3.0.TKDTWXM_3bfd41caa1_13.0.zip'
+          export SIZE='8.5'; export URL='https://cdn-ota.azureedge.net/OS1.0.6.0.UMCCNXM/miui_FUXI_OS1.0.6.0.UMCCNXM_ded0db3571_14.0.zip'
           chmod -R 777 .github/bin/* >/dev/null
           export PATH="$GITHUB_WORKSPACE/.github/bin:$PATH"
           chmod -R 777 .github/*.sh >/dev/null
