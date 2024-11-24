@@ -1,7 +1,7 @@
 #!/bin/bash
 TOME="$GITHUB_WORKSPACE"
 phanvungtam=$TOME/Unpack
-[[ -f $phanvungtam/odm/etc/build.prop ]] && tenmamay=$(sudo grep 'ro.product.odm.device' $phanvungtam/odm/etc/build.prop | awk -F= '{print $2}' | awk '{$1=$1}{print}') || tenmamay=$(sudo grep 'ro.product.vendor.device' $phanvungtam/vendor/build.prop | awk -F= '{print $2}' | awk '{$1=$1}{print}')
+[[ -f "$phanvungtam/odm/etc/build.prop" ]] && tenmamay=$(sudo grep 'ro.product.odm.device' $phanvungtam/odm/etc/build.prop | awk -F= '{print $2}' | awk '{$1=$1}{print}') || tenmamay=$(sudo grep 'ro.product.vendor.device' $phanvungtam/vendor/build.prop | awk -F= '{print $2}' | awk '{$1=$1}{print}')
 API=$(sudo grep 'ro.build.version.sdk=' $phanvungtam/system/system/build.prop | awk -F= '{print $2}');
 VERS=$(sudo grep 'ro.build.version.release=' $phanvungtam/system/system/build.prop | awk -F= '{print $2}');
 # Thư mục chứa apk,jar đã mod: $TOME/Mod
@@ -13,113 +13,45 @@ VERS=$(sudo grep 'ro.build.version.release=' $phanvungtam/system/system/build.pr
 # Đường dẫn thư mục product: $phanvungtam/product 
 # Đường dẫn thư mục system_ext: $phanvungtam/system_ext
 ########
-# tìm kiếm văn bản và hiện đường dẫn, in đường dẫn vào file để xác định class.dex cần dùng
-Timkiem(){ find $2 -name "*.smali" -exec grep -Rl "$1" {} + | tee -a 1z.txt; }
-
-# thay thế toàn bộ phương thức method 
-Vsmali(){
-patVsmali="$(Timkiem "$(echo "$1" | sed '/^$/d' | head -n1)" "$2")"
-so="$(grep -nm1 "$(echo "$1" | sed '/^$/d' | head -n1)" "$patVsmali" | cut -d: -f1;)"
-sed -i "$so,/$(echo "$1" | sed '/^$/d' | tail -n1)/c ${1//
-/\\n}" "$patVsmali"; }
-
-mẫu1() {
-Vsmali '
-.method public performHapticFeedback(Landroid/view/View;I)Z
-    .locals 1
-    const/4 v0, 0x0
-    return v0
-.end method
-' './*.smali'
-}
-
-# nâng cao, thay đổi 1 dòng trong method 
-Nsmali(){
-patNsmali="$(Timkiem "$(echo "$1" | sed '/^$/d' | head -n1)" "$6")"
-so2="$(sed = "$patNsmali" | sed 'N;s/\n/:\t/' | sed -n "$(grep -nm1 "$1" "$patNsmali" | cut -d: -f1;),/$2/p" | grep "$3" | cut -d: -f1 | sed -n "${5}p")"
-sed -i "${so2}c $4" "$patNsmali"; }
-
-mẫu2() {
-Nsmali '.method public performHapticFeedback(Landroid/view/View;I)Z' '.end method' \
-'invoke-virtual {p1, v0}, Landroid/view/View;->performHapticFeedback(I)Z' \
-'invoke-virtual {p1, v0}, Landroid/view/View;->performHapticFeedback(I)Z \n kakathic' '1' './*.smali'
-}
-
-# 1 tìm kiếm văn bản
-# 2 kết thúc dòng tìm kiếm
-# 3 tìm kiếm văn bản trong kết quả tìm kiếm 1
-# 4 thay thế số 3
-# 5 trường hợp có 2 dòng ở mục 3 trùng khớp mặc định nên để số 1 để chọn dòng đầu
-# ví dụ: const/4 v0, 0x0 có 2 dòng, mẫu thay thế dòng 2
-# 6 đường dẫn smali
+#suasmalis 
+#thayphuongthuc '1: tên.smali hoặc phương thức' '2: phương thức' '3: giới hạn tìm đầu' '4: nội dung tìm đầu' '5: giới hạn tìm cuối' '6: nội dung tìm cuối' '7: nội dung thay 1' '8: nội dung thay 2'
+#
+#VD1: suasmalis; thaydong 'StrictJarVerifier.smali' 'Ljava/security/MessageDigest;->isEqual' '20' 'const/4 v1, 0x0' '0' '0' 'const/4 v1, 0x1'
+#
+#VD2: suasmalis; thayphuongthuc 'PackageManagerServiceImpl.smali' '.method public static isCTS()Z' '0' '0' '0' '.end method' 'const/4 v0, 0x1\n return v0\n'
 ########
 Caidat() {
 for tjar in Joyose1 Settings1 MIUISystemUIPlugin1 MIUIPackageInstaller1 MiuiSystemUI1; do
 Timfile "$tjar.apk"
-if [[ -f $TOME/Mod/$tjar.apk ]]; then 
+if [[ -f "$TOME/Mod/$tjar.apk" ]]; then 
 echo " Xử lý: $tjar.apk"
 Unpackfile
  if [[ "$tjar" == "Settings" ]]; then 
 Tkm() {
-for m in MiuiUtils.smali MiuiSecuritySettings.smali MiuiDisplaySettings.smali display/PageLayoutFragment.smali MiuiSettings.smali; do sed -i 's/IS_INTERNATIONAL_BUILD/IS_ALPHA_BUILD/g' $TOME/Mod/$tjar/classes*/com/android/settings/$m 2>/dev/null; done
-sed -i 's/sget-boolean v2, Lmiui\/os\/Build;->IS_GLOBAL_BUILD:Z/sget-boolean v2, Lmiui\/os\/Build;->IS_ALPHA_BUILD:Z/' $TOME/Mod/$tjar/classes*/com/android/settings/MiuiDisplaySettings.smali 2>/dev/null 
-sed -i 's/sget-boolean v0, Lmiui\/os\/Build;->IS_ALPHA_BUILD:Z/sget-boolean v0, Lmiui\/os\/Build;->IS_INTERNATIONAL_BUILD:Z/' $TOME/Mod/$tjar/classes*/com/android/settings/MiuiSettings.smali 2>/dev/null 
-noichua=$(find $TOME/Mod/$tjar -type f -name 'MiuiSettings.smali'); 
-phuongthuc='IS_SUPPORT_TABLET_SCREEN_SETTINGS:Z'
-noidung='IS_INTERNATIONAL_BUILD'
-dong='IS_ALPHA_BUILD'
-thaychuoi
-boten;
-noichua=$(find $TOME/Mod/$tjar -type f -name 'MiuiSettings.smali'); 
-phuongthuc='sget v10, Lcom/android/settings/R\$id;->mi_wallet_payment:I'
-noidung='IS_INTERNATIONAL_BUILD'
-dong='IS_ALPHA_BUILD'
-thaychuoi
-boten;
-noichua=$(find $TOME/Mod/$tjar -type f -name 'MiuiSettings.smali'); 
-phuongthuc='sget v10, Lcom/android/settings/R\$id;->system_apps_updater:I'
-noidung='IS_ALPHA_BUILD'
-dong='IS_GLOBAL_BUILD'
-thaychuoi
-boten;
+sed -i 's/IS_INTERNATIONAL_BUILD:Z/IS_ALPHA_BUILD:Z/g' $TOME/Mod/$tjar/classes*/com/android/settings/device/DeviceBasicInfoPresenter.smali 2>/dev/null 
+sed -i 's/IS_INTERNATIONAL_BUILD:Z/IS_ALPHA_BUILD:Z/g' $TOME/Mod/$tjar/classes*/com/android/settings/device/DeviceBasicInfoPresenter\$4.smali 2>/dev/null 
+sed -i 's/IS_INTERNATIONAL_BUILD:Z/IS_ALPHA_BUILD:Z/g' $TOME/Mod/$tjar/classes*/com/android/settings/device/DeviceDetailOnClickListener.smali 2>/dev/null 
+sed -i 's/IS_INTERNATIONAL_BUILD:Z/IS_ALPHA_BUILD:Z/g' $TOME/Mod/$tjar/classes*/com/android/settings/device/MiuiMyDeviceDetailSettings.smali 2>/dev/null 
 }
-sudo sed -i 's/"MIUI "/"MIUIVH "/g' $TOME/Mod/$tjar/classes*/com/android/settings/device/MiuiAboutPhoneUtils.smali 2>/dev/null
+sudo sed -i 's/"MIUI "/"MIUICC "/g' $TOME/Mod/$tjar/classes*/com/android/settings/device/MiuiAboutPhoneUtils.smali 2>/dev/null
 sudo sed -i 's/"by xiaomi.eu"/"by MIUICC "/g' $TOME/Mod/$tjar/classes*/com/android/settings/device/MiuiAboutPhoneUtils.smali 2>/dev/null
 sudo sed -i 's/"ro.build.host"/"CC "/g' $TOME/Mod/$tjar/classes*/com/android/settings/device/MiuiAboutPhoneUtils.smali 2>/dev/null 
 [[ "$TKM" == "1" ]] && Tkm
  fi
  if [[ "$tjar" == "Joyose" ]]; then 
-taptin=$(find $TOME/Mod/$tjar/ -type f -name '*.smali'); 
-for noichua in $taptin; do
-phuongthuc='GPUTUNER_SWITCH'
-noidung='const/4 v0, 0x1'
-dong='const/4 v0, 0x0'
-thaydong
-done
+   suasmalis; thaydong "GPUTUNER_SWITCH" 'GPUTUNER_SWITCH' '20' 'const/4 v0, 0x0' '0' '0' 'const/4 v0, 0x1'
  fi
  if [[ "$tjar" == "MIUISystemUIPlugin" ]]; then 
-noichua=$(find $TOME/Mod/$tjar/ -type f -name 'MiPlayController.smali'); 
-phuongthuc='supportMiPlayAudio()'
-cuoi='.end method'
-noidung='const/4 p0, 0x1\n return p0'
-thayphuongthuc
-boten;
+  suasmalis; thayphuongthuc 'MiPlayController.smali' 'supportMiPlayAudio()' '0' '0' '0' '.end method' 'const/4 p0, 0x1\n return p0\n'
  fi
  if [[ "$tjar" == "MIUIPackageInstaller" ]]; then 
-taptin=$(find $TOME/Mod/$tjar -type f -name '*.smali');
-for noichua in $taptin; do
-phuongthuc='.method public static a(Landroid/content/pm/ApplicationInfo;)Z'; 
-noidung='const/4 v0, 0x0\n return v0'; 
-chendau
-boten; 
-done
+  for taptin in $(find $TOME/Mod/$tjar -type f -name '*.smali'); do
+   noichua=${taptin##*/}
+   suasmalis; chensaudongn "$noichua" '.method public static a(Landroid/content/pm/ApplicationInfo;)Z' '2' '.register' '0' '0' 'const/4 v0, 0x0\n return v0'
+  done
  fi
  if [[ "$tjar" == "MiuiSystemUI" ]]; then 
-noichua=$(find $TOME/Mod/$tjar/ -type f -name 'PrivacyItemControllerler.smali'); 
-phuongthuc='isMicicCameraAndabled('
-noidung='move-result p0'
-dong='const/4 p0, 0x0'
-thaydong
+  suasmalis; thaydong "PrivacyItemControllerler.smali" '20' 'isMicicCameraAndabled(' '0' '0' 'move-result p0' '0' 'const/4 p0, 0x0'
  fi
 Repackfile
 fi 
@@ -129,11 +61,11 @@ Caidat
 #
 tinhnang() {
 for p in $phanvungtam/product $phanvungtam/system/system $phanvungtam/vendor; do 
- if [ -d $p/etc/device_features ]; then
+ if [ -d "$p/etc/device_features" ]; then
   for f in $p/etc/device_features/*.xml; do
    if [ -z "$(sudo grep -m1 'miui_volume_expand_freeland' $f)" ]; then 
 sudo sed -i '/<\/features>/d' $f
-sudo bash -c "echo '
+echo '
 <integer name="config_cell_count_y_max">15</integer>
 <integer name="config_cell_count_x_max">15</integer>
 <integer name="support_widevine_l1">1</integer>
@@ -185,6 +117,7 @@ sudo bash -c "echo '
         <item>12</item>
         <item>96</item>
     </integer-array> 
+<integer-array name="screen_resolution_supported"> <item>1220</item> <item>1080</item> </integer-array> 
 <bool name="support_SR_for_image_display">true</bool>
 <bool name="support_AI_display">true</bool>
 <bool name="support_nature_mode">true</bool>
@@ -205,16 +138,18 @@ sudo bash -c "echo '
 <integer name="paper_eyecare_default_texture">25</integer>
 <integer name="paper_eyecare_max_texture">70</integer>
 <bool name="support_smart_fps">true</bool>
-<integer name="smart_fps_value">120</integer> 
+<integer name="smart_fps_value">60</integer> 
 <integer-array name="fpsList">
+        <item>144</item>
         <item>120</item>
         <item>90</item>
         <item>60</item>
     </integer-array>
+<integer name="defaultFps">60</integer>
 <integer name="config_screenBrightnessSettingDefault">100</integer>
 <integer name="config_screenBrightnessSettingMaximum">255</integer>
 <integer name="config_screenBrightnessSettingMinimum">15</integer>
-</features>' >> $f"
+</features>' | sudo tee -a $f >/dev/null
    fi
   done
  fi
@@ -312,6 +247,7 @@ vendorfc="/vendor/etc/permissions/public\.libraries\.txt u:object_r:same_process
 /vendor/lib64/vendor\.qti\.hardware\.display\.mapperextensionsshim\.so u:object_r:same_process_hal_file:s0
 /vendor/lib64/vendor\.qti\.hardware\.graphics\.composer@1\.0\.so u:object_r:same_process_hal_file:s0
 /vendor/lib64/vendor\.qti\.hardware\.graphics\.composer@1\.1\.so u:object_r:same_process_hal_file:s0
+/vendor/etc/audio u:object_r:system_file:s0
 /vendor/etc/audio/sku_cape u:object_r:system_file:s0
 /vendor/etc/audio/sku_cape/mixer_paths_overlay_static\.xml u:object_r:system_file:s0
 /vendor/etc/dolby/daxa-default\.xml u:object_r:system_file:s0
@@ -344,6 +280,7 @@ productfc="/product u:object_r:system_file:s0
 /product/etc u:object_r:system_file:s0
 /product/etc/default-permissions u:object_r:system_file:s0
 /product/etc/default-permissions/default-permissions-nikgapps\.xml u:object_r:system_file:s0
+/product/etc/displayconfig/display_id_4630946545580055170\.xml u:object_r:system_file:s0
 /product/etc/permissions u:object_r:system_file:s0
 /product/etc/permissions/NikGapps-privapp-permissions-google\.xml u:object_r:system_file:s0
 /product/etc/permissions/com\.android\.vending\.xml u:object_r:system_file:s0
@@ -439,7 +376,7 @@ productfc="/product u:object_r:system_file:s0
 /product/priv-app/PrebuiltGmsCore/m/optional/MlkitBarcodeUIPrebuilt\.apk u:object_r:system_file:s0
 /product/priv-app/PrebuiltGmsCore/m/optional/VisionBarcodePrebuilt\.apk u:object_r:system_file:s0"
 #
-system_extfc=''
+system_extfc="/system_ext/etc/cust_prop_white_keys_list u:object_r:system_file:s0"
 #
 # Thêm fsconfig
 systemfs=''
@@ -549,8 +486,10 @@ vendor/lib/rfsa/adsp/misound_karaokemix_res.bin 0 0 0644
 vendor/lib/rfsa/adsp/misound_karaoke_res.bin 0 0 0644
 vendor/lib/rfsa/adsp/misound_res_headphone.bin 0 0 0644
 vendor/lib/rfsa/adsp/misound_res_spk.bin 0 0 0644
+vendor/lib/soundfx/libmisoundfx.so 0 0 0644
 vendor/etc/mixer_paths.xml 0 0 0644
 vendor/etc/mixer_paths_cdp.xml 0 0 0644
+vendor/etc/audio 0 0 0755
 vendor/etc/audio/sku_cape 0 0 0755
 vendor/etc/audio/sku_cape/mixer_paths_overlay_static.xml 0 0 0644
 vendor/etc/dolby/daxa-default.xml 0 0 0644
@@ -602,6 +541,7 @@ product/app/MIUISystemUIPlugin/MiuiSystemUIPlugin/MiuiSystemUIPlugin.apk 0 0 064
 product/etc 0 0 0755
 product/etc/default-permissions 0 0 0755
 product/etc/default-permissions/default-permissions-nikgapps.xml 0 0 0644
+product/etc/displayconfig/display_id_4630946545580055170.xml 0 0 0644
 product/etc/permissions 0 0 0755
 product/etc/permissions/NikGapps-privapp-permissions-google.xml 0 0 0644
 product/etc/permissions/com.android.vending.xml 0 0 0644
@@ -698,20 +638,20 @@ product/priv-app/PrebuiltGmsCore/m/optional 0 0 0755
 product/priv-app/PrebuiltGmsCore/m/optional/MlkitBarcodeUIPrebuilt.apk 0 0 0644
 product/priv-app/PrebuiltGmsCore/m/optional/VisionBarcodePrebuilt.apk 0 0 0644"
 #
-system_extfs=""
+system_extfs="system_ext/etc/cust_prop_white_keys_list 0 0 0644"
 }
 #
 ngonngu() { 
 if [[ "$TTV" == "1" ]]; then 
 mkdir -p $TOME/VH
-#Taive "https://github.com/kakathic/ZH-VN/releases/download/HH/TT_1.8.Zip" "$TOME/VH.zip"
 Taive "https://github.com/chamchamfy/toolcc/raw/main/overlay.zip" "$TOME/VH.zip"
 [ ! -f "$TOME/VH.zip" ] && Taivewget "https://github.com/chamchamfy/toolcc/raw/main/overlay.zip" "$TOME/VH.zip"
 if [[ -s "$TOME/VH.zip" ]]; then echo " * Thêm ngôn ngữ..."
 7za x -tzip -y "$TOME/VH.zip" -o$TOME/VH >/dev/null
 [[ -e "$phanvungtam/product/overlay" ]] && TMVH=$phanvungtam/product/overlay || TMVH=$phanvungtam/vendor/overlay
-sudo cp -af $TOME/VH/apk/* $TMVH
-sudo cp -af $TOME/VH/GmsConfigOverlayCommon.apk $TMVH
+sudo cp -rf $TOME/VH/apk/* $TMVH
+#sudo cp -rf $TOME/VH/Gms*.apk $TOME/VH/*Tele*.apk $TMVH 2>/dev/null
+sudo cp -rf $TOME/VH/cc.*.apk $TMVH
 sudo rm -rf $TOME/VH
 fi
 fi
@@ -721,7 +661,10 @@ ngonngu
 if [[ "$HK" == "1" ]]; then echo " * Thêm Harman Kardon..."
 mkdir -p $TOME/tam
 7za x -tzip -y $TOME/.github/HarmanKardon.zip -o$TOME/tam >/dev/null
-sudo cp -af $TOME/tam/system/vendor/* $phanvungtam/vendor 
+sudo cp -rf $TOME/tam/system/vendor/* $phanvungtam/vendor 
+for tt in $(find $TOME/tam/system/vendor -type f); do sudo bash -c "echo '${tt//$TOME\/tam\/system\//} 0 0 0644' >> $TOME/vfs"; done
+for tt in $(find $TOME/tam/system/vendor -type d); do sudo bash -c "echo '${tt//$TOME\/tam\/system\//} 0 0 0755' >> $TOME/vfs"; done
+for i in vfs vfc; do [ -f "$TOME/$i" ] && sudo sed -i -e 's/\r$//g; /^$/d' $TOME/$i; done
 sudo rm -rf $TOME/tam
 fi 
 #
@@ -735,47 +678,76 @@ if [[ "$AGPU" == "725" ]]; then
 if [[ -s "$TOME/AdrenoGPUDriver.zip" ]]; then echo " * Thêm Adreno GPU Driver $AGPU..."
 mkdir -p $TOME/tam
 7za x -tzip -y $TOME/AdrenoGPUDriver.zip -o$TOME/tam >/dev/null
-sudo cp -af $TOME/tam/system/vendor/* $phanvungtam/vendor 
+sudo cp -rf $TOME/tam/system/vendor/* $phanvungtam/vendor 
 sudo rm -rf $TOME/tam $TOME/AdrenoGPUDriver.zip
 fi 
 #
 #
-[[ "$tenmamay" == "vili" ]] && sudo cp -af $TOME/.github/libpy/input/* $phanvungtam || tinhnang
+[[ "$tenmamay" == "vili" ]] && sudo cp -rf $TOME/.github/libpy/vili/* $phanvungtam || tinhnang
 #
+thempersist() {
+if [[ "$tenmamay" == "vili" ]]; then 
+ if [[ ! -f "$TOME/.github/libpy/Flash2in1/images/persist.img" ]]; then 
+  if [[ -n "$(echo "$URL" | grep 'MIXM')" ]]; then linkps="https://github.com/chamchamfy/toolcc/raw/main/persist_${tenmamay}gl.zip"; elif [[ -n "$(echo "$URL" | grep 'TWXM')" ]]; then linkps="https://github.com/chamchamfy/toolcc/raw/main/persist_${tenmamay}tw.zip"; fi
+  Taive "$linkps" "$TOME/persist.zip"
+  [[ -s "$TOME/persist.zip" ]] && 7za e -tzip -y $TOME/persist.zip *.img -o$TOME/.github/libpy/Flash2in1/images/ >/dev/null 2>&1 && rm -rf $TOME/persist.zip 2>/dev/null
+ fi
+fi
+}
+#thempersist
+[ -f "$TOME/.github/libpy/Flash2in1/images/persist.img" ] && echo " * Thêm persist..."
 #
 #linktwrp="https://sourceforge.net/projects/recovery-for-xiaomi-devices/files/${tenmamay}/twrp-3.7.0_12-v7.9_A13-${tenmamay}-skkk.img"
  mkdir -p $TOME/twrp
- taivetwrp() { kkurl="recovery-for-xiaomi-devices"; Taive "$(Xem "$(Xem "https://sourceforge.net/projects/$kkurl/files/$tenmamay" | grep -om1 "https://.*./$kkurl/files/$tenmamay/.*$1.*" | cut -d '"' -f1)?use_mirror=zenlayer&amp=&use_mirror=zenlayer&r=" | grep -om1 "https://.*./$kkurl/.*$1.*" | cut -d '"' -f1)" "$2"; }
+ taivetwrp() { LURL="https://sourceforge.net/projects/recovery-for-xiaomi-devices/files/$tenmamay"; Taive "$LURL/"$1"$(curl -s "$LURL/" | grep 'net.sf.files' | awk -F$1 '{print $4}' | awk -F/ '{print $1}')" "$2"; } 
 if [[ -n "$(grep 'recovery' $phanvungtam/vendor/etc/fstab.*)" ]]; then 
-  if [[ "$MREC" == "1" ]]; then 
+ if [[ "$MREC" == "1" ]]; then 
   taivetwrp "OrangeFox-" "$TOME/twrp/fox.zip" 
   7za x -tzip -y $TOME/twrp/fox.zip *.img -o$TOME/twrp/recovery.img >/dev/null && rm -rf $TOME/twrp/fox.zip 2>/dev/null
-  elif [[ "$MREC" == "TWRP" ]]; then 
+ elif [[ "$MREC" == "TWRP" ]]; then 
   taivetwrp "twrp-" "$TOME/twrp/recovery.img"
-  fi
+ fi
 else 
-  if [[ "$MREC" == "1" ]]; then 
+ if [[ "$MREC" == "1" ]]; then 
   taivetwrp "OrangeFox-" "$TOME/twrp/fox.zip" 
   7za x -tzip -y $TOME/twrp/fox.zip *.img -o$TOME/twrp/twrp.img >/dev/null && rm -rf $TOME/twrp/fox.zip 2>/dev/null
-  elif [[ "$MREC" == "TWRP" ]]; then 
+ elif [[ "$MREC" == "TWRP" ]]; then 
   taivetwrp "twrp-" "$TOME/twrp/twrp.img"
-  fi
- fi
-if [[ "$tenmamay" == "vili" ]]; then 
- if [[ ! -f "$TOME/twrp/twrp.img" ]]; then 
-  if [[ -n "$(echo "$URL" | grep 'MIXM')" ]]; then linktwrp="https://sourceforge.net/projects/chamchamfy/files/Tools/boot_global_$tenmamay.img"; elif [[ -n "$(echo "$URL" | grep 'TWXM')" ]]; then linktwrp="https://sourceforge.net/projects/chamchamfy/files/Tools/boot_tw_$tenmamay.img"; fi
-  Taive "$linktwrp" "$TOME/twrp/boot.img"
  fi
 fi
 [[ -n "$(ls $TOME/twrp/*.img 2>/dev/null)" ]] && echo " * Thêm Recovery $tenmamay..."
 du -m $TOME/twrp/*.img 2>/dev/null
 #
 if [[ "$GAPP" == "1" ]]; then 
-if [ "$VERS" == "12" ]; then PB=S; elif [ "$VERS" == "13" ]; then PB=T; elif [ "$VERS" == "14" ]; then PB=U; elif [ "$VERS" == "15" ]; then PB=V; elif [ "$VERS" == "16" ]; then PB=W; elif [ "$VERS" == "17" ]; then PB=X; elif [ "$VERS" == "18" ]; then PB=Y; elif [ "$API" == "19" ]; then PB=Z; fi
- Taive "https://sourceforge.net/projects/nikgapps/files/Releases/NikGapps-${PB}/07-Nov-2023/NikGapps-basic-arm64-${VERS}-20231107-signed.zip" "$TOME/gapp.zip"
- if [[ "$(du -m $TOME/gapp.zip | awk '{print $1}')" -gt 20 ]]; then echo " * Thêm Gói Gapp..."
+if [ "$VERS" == "12" ]; then PB=S; elif [ "$VERS" == "13" ]; then PB=T; elif [ "$VERS" == "14" ]; then PB=U; elif [ "$VERS" == "15" ]; then PB=V; elif [ "$VERS" == "16" ]; then PB=W; elif [ "$VERS" == "17" ]; then PB=X; elif [ "$VERS" == "18" ]; then PB=Y; elif [ "$VERS" == "19" ]; then PB=Z; fi
+ tainikgapp() { LURL="https://sourceforge.net/projects/nikgapps/files/Releases/Android-${PB}"; Taive "$(curl -s "$LURL/$(curl -s "$LURL/" | grep 'net.sf.files' | awk -F'"' '{print $2}')/" | grep 'net.sf.files' | awk -F'"' '{print $286}')" "$TOME/$1"; } 
+ taigapp() { LURL="https://sourceforge.net/projects/litegapps/files/litegapps/arm64/$2/$1"; Taive "$(curl -s "$LURL/$(curl -s "$LURL/" | grep 'net.sf.files' | awk -F'"' '{print $2}')/" | grep 'net.sf.files' | awk -F'"' '{print $14}')" "$TOME/$3"; } 
+ taigboad() { LURL="https://sourceforge.net/projects/litegapps/files/addon/arm64/$2/$1/GoogleKeyboard"; Taive "$(curl -s "$LURL/" | grep 'net.sf.files' | awk -F'"' '{print $14}')" "$TOME/$3"; } 
+ taigapp "core" "$API" "gapp.zip" || tainikgapp "nikgapp.zip"
+ taigboad "gapps" "$API" "gboad.zip"
+ 
+ if [[ "$(du -m $TOME/gboad.zip | awk '{print $1}')" -gt 30 ]]; then 
+ #7za x -tzip -y $TOME/gboad.zip -o$TOME/gapp >/dev/null
+ #sudo cp -rf $TOME/gapp/system/* $TOME/cauhinh 2>/dev/null 
+ 7za e -tzip -y $TOME/gboad.zip -o$TOME/gapp >/dev/null
+ mkdir -p $TOME/cauhinh/product/app/LatinIMEGoogle
+ sudo cp -rf $TOME/gapp/*.apk $TOME/cauhinh/product/app/LatinIMEGoogle/LatinIMEGoogle.apk 2>/dev/null 
+ fi
+ if [[ "$(du -m $TOME/gapp.zip | awk '{print $1}')" -gt 80 ]]; then echo " * Thêm Gói Gapp..."
+ mkdir -p $TOME/gapp $TOME/cauhinh
+ 7za x -tzip -y $TOME/gapp.zip -o$TOME/gapp >/dev/null
+ tar -xJf $TOME/gapp/files/files.tar.xz -C $TOME/gapp 2>/dev/null 
+ sudo cp -rf $TOME/gapp/arm64/*/system/* $TOME/cauhinh 2>/dev/null 
+ sudo cp -rf $TOME/cauhinh/* $phanvungtam
+ for tt in $(find $TOME/cauhinh/product -type f); do sudo bash -c "echo '${tt//$TOME\/cauhinh\//} 0 0 0644' >> $TOME/pfs"; ttm="${tt//$TOME\/cauhinh/}"; sudo bash -c "echo '${ttm//./\\.} u:object_r:system_file:s0' >> $TOME/pfc"; done
+ for tt in $(find $TOME/cauhinh/product -type d); do sudo bash -c "echo '${tt//$TOME\/cauhinh\//} 0 0 0755' >> $TOME/pfs"; ttm="${tt//$TOME\/cauhinh/}"; sudo bash -c "echo '${ttm//./\\.} u:object_r:system_file:s0' >> $TOME/pfc"; done
+ for tt in $(find $TOME/cauhinh/system_ext -type f); do sudo bash -c "echo '${tt//$TOME\/cauhinh\//} 0 0 0644' >> $TOME/sefs"; ttm="${tt//$TOME\/cauhinh/}"; sudo bash -c "echo '${ttm//./\\.} u:object_r:system_file:s0' >> $TOME/sefc"; done
+ for tt in $(find $TOME/cauhinh/system_ext -type d); do sudo bash -c "echo '${tt//$TOME\/cauhinh\//} 0 0 0755' >> $TOME/sefs"; ttm="${tt//$TOME\/cauhinh/}"; sudo bash -c "echo '${ttm//./\\.} u:object_r:system_file:s0' >> $TOME/sefc"; done
+ for i in sefc sefs pfs pfc; do sudo sed -i -e 's/\r$//g; /^$/d' $TOME/$i; done
+ sudo rm -rf $TOME/{gapp,cauhinh} $TOME/gapp.zip $TOME/gboad.zip
+ elif [[ "$(du -m $TOME/nikgapp.zip | awk '{print $1}')" -gt 20 ]]; then echo " * Thêm Gói NikGapp..."
  mkdir -p $TOME/gapp $TOME/tam
- 7za x -tzip -y $TOME/gapp.zip -o$TOME/tam >/dev/null
+ 7za x -tzip -y $TOME/nikgapp.zip -o$TOME/tam >/dev/null
  for f in $TOME/tam/AppSet/CarrierServices/*.zip $TOME/tam/AppSet/Core/*.zip; do 
  tm=${f//.zip/}; ttm=${tm##*/}; mkdir -p $TOME/gapp/$ttm; 
  7za x -tzip -y $f -o$TOME/gapp/$ttm >/dev/null
@@ -789,14 +761,14 @@ if [ "$VERS" == "12" ]; then PB=S; elif [ "$VERS" == "13" ]; then PB=T; elif [ "
    t5=$(echo $t | awk -F___ '{print $6}')
    tm="$TOME/cauhinh/product/$t1/$t2/$t3/$t4/$t5"
     mkdir -p $tm 
-    sudo cp -af $t/* $tm
+    sudo cp -rf $t/* $tm
   fi
  done
- sudo cp -af $TOME/cauhinh/product/* $phanvungtam/product
+ sudo cp -rf $TOME/cauhinh/product/* $phanvungtam/product
  for tt in $(find $TOME/cauhinh/product -type f); do sudo bash -c "echo '${tt//$TOME\/cauhinh\//} 0 0 0644' >> $TOME/pfs"; ttm="${tt//$TOME\/cauhinh/}"; sudo bash -c "echo '${ttm//./\\.} u:object_r:system_file:s0' >> $TOME/pfc"; done
  for tt in $(find $TOME/cauhinh/product -type d); do sudo bash -c "echo '${tt//$TOME\/cauhinh\//} 0 0 0755' >> $TOME/pfs"; ttm="${tt//$TOME\/cauhinh/}"; sudo bash -c "echo '${ttm//./\\.} u:object_r:system_file:s0' >> $TOME/pfc"; done
- 
- sudo rm -rf $TOME/{tam,gapp,cauhinh} $TOME/gapp.zip
+ for i in pfs pfc; do sudo sed -i -e 's/\r$//g; /^$/d' $TOME/$i; done
+ sudo rm -rf $TOME/{tam,gapp,cauhinh} $TOME/nikgapp.zip
  fi
 fi
 if [[ "$APPM" == "1" ]]; then 
@@ -811,14 +783,14 @@ if [[ "$APPM" == "1" ]]; then
  done
   mv -f $TOME/tam/product/app/FileExplorer $TOME/tam/product/app/MIUIFileExplorer 2>/dev/null
   mv -f $TOME/tam/product/app/MIUIFileExplorer/FileExplorer.apk $TOME/tam/product/app/MIUIFileExplorer/MIUIFileExplorer.apk 2>/dev/null
-  if [[ -d $phanvungtam/product/data-app/MIUIGallery ]]; then 
+  if [[ -d "$phanvungtam/product/data-app/MIUIGallery" ]]; then 
   mkdir -p $TOME/tam/product/data-app
   mv -f $TOME/tam/product/priv-app/MiuiGallery $TOME/tam/product/data-app/MIUIGallery 2>/dev/null
   mv -f $TOME/tam/product/data-app/MIUIGallery/MiuiGallery.apk $TOME/tam/product/data-app/MIUIGallery/MIUIGallery.apk 2>/dev/null
-  elif [[ -d $phanvungtam/product/priv-app/Gallery_T_CN ]]; then 
+  elif [[ -d "$phanvungtam/product/priv-app/Gallery_T_CN" ]]; then 
   mv -f $TOME/tam/product/priv-app/MiuiGallery $TOME/tam/product/priv-app/Gallery_T_CN 2>/dev/null
   mv -f $TOME/tam/product/priv-app/Gallery_T_CN/MiuiGallery.apk $TOME/tam/product/priv-app/Gallery_T_CN/Gallery_T_CN.apk 2>/dev/null
-  elif [[ -d $phanvungtam/product/priv-app/MiuiGallery ]]; then 
+  elif [[ -d "$phanvungtam/product/priv-app/MiuiGallery" ]]; then 
   echo ""
   else rm -rf $TOME/tam/product/priv-app/MiuiGallery
   fi
@@ -827,11 +799,12 @@ if [[ "$APPM" == "1" ]]; then
  
  for tt in $(find $TOME/tam/product/*app -type d); do sudo bash -c "echo '${tt//$TOME\/tam\//} 0 0 0755' >> $TOME/pfs"; ttm="${tt//$TOME\/tam/}"; sudo bash -c "echo '${ttm//./\\.} u:object_r:system_file:s0' >> $TOME/pfc"; done
  for tt in $(find $TOME/tam/product/*app -type f); do sudo bash -c "echo '${tt//$TOME\/tam\//} 0 0 0644' >> $TOME/pfs"; ttm="${tt//$TOME\/tam/}"; sudo bash -c "echo '${ttm//./\\.} u:object_r:system_file:s0' >> $TOME/pfc"; done
+ for i in pfs pfc; do sudo sed -i -e 's/\r$//g; /^$/d' $TOME/$i; done
 
-  sudo cp -af $TOME/tam/product/*app $phanvungtam/product 2>/dev/null
-  sudo cp -af $TOME/tam/vendor/*app $phanvungtam/vendor 2>/dev/null
-  sudo cp -af $TOME/tam/system_ext/*app $phanvungtam/system_ext 2>/dev/null
-  sudo cp -af $TOME/tam/system/*app $phanvungtam/system/system 2>/dev/null
+  sudo cp -rf $TOME/tam/product/*app $phanvungtam/product 2>/dev/null
+  sudo cp -rf $TOME/tam/vendor/*app $phanvungtam/vendor 2>/dev/null
+  sudo cp -rf $TOME/tam/system_ext/*app $phanvungtam/system_ext 2>/dev/null
+  sudo cp -rf $TOME/tam/system/*app $phanvungtam/system/system 2>/dev/null
   sudo rm -rf $TOME/tam $TOME/appm.zip
  fi
 fi

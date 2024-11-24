@@ -8,8 +8,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: 'Xem thông báo'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           # Rom Rebuild
           export SIZE='8.5'; export URL='https://cdn-ota.azureedge.net/OS1.0.6.0.UMCCNXM/miui_FUXI_OS1.0.6.0.UMCCNXM_ded0db3571_14.0.zip'

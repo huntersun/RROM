@@ -1,4 +1,4 @@
-# kakathic
+# kakathic & chamchamfy
 . .github/Function.sh
 
 # Cài giờ Việt Nam
@@ -7,7 +7,7 @@ sudo cp /usr/share/zoneinfo/Asia/Ho_Chi_Minh /etc/localtime
 
 # chat bot chào & thêm nhãn chờ
 Chatbot 'Bắt đầu xây dựng, vui lòng chờ...<br/><br/>Sau khi xong link sẽ được gửi vào bài viết này, hoặc xem quá trình xây dựng 📱[Actions](https://github.com/chamchamfy/RROM/actions/runs/'$GITHUB_RUN_ID')<br/><br/>Muốn hủy quá trình xây dựng hãy ấn nút `Close Issues`, chỉ có thể hủy khi đang tải rom về.' >/dev/null 2>&1   
-addlabel "Wait"
+#addlabel "Wait"
 
 # CÁC TÙY CHỌN WEB
 Xem "https://github.com/chamchamfy/RROM/issues/$NUMBIE" > $TOME/1.ht
@@ -37,17 +37,15 @@ URLKK="$(grep -m1 'dir="auto">Url:' $TOME/1.ht | grep -o 'Url:.*<' | sed 's|Url:
 [[ -n "$(grep 'TWRP' $TOME/1.ht)" ]] && RECOVERYMOD="TWRP"
 GITENV MREC $RECOVERYMOD
 
-# Gắn lên git env
-GITENV URL $URLKK
-GITENV NEMEROM "RROM_${URL##*/}"
-GITENV DINHDANG "${URL##*.}"
-
 # Thêm Các tùy chọn: 1=Bật, 0=Tắt
 GITENV TTV "$(checkbox 'Thêm Tiếng Việt')"
 GITENV GAPP "$(checkbox 'Thêm GAPP')"
 GITENV HK "$(checkbox 'Thêm âm thanh HARMAN KARDON')"
 GITENV Vsys "$(checkbox 'Vá hệ thống')"
+GITENV Vccg "$(checkbox 'Vá chứng chỉ')"
 GITENV Vfstab "$(checkbox 'Bỏ mã hoá Rom')"
+GITENV Thucthi "$(checkbox 'Vá Permissive')"
+GITENV NRW "$(checkbox 'Cho phép đọc ghi vài phân vùng')"
 GITENV APPM "$(checkbox 'Thêm ứng dụng đã Mod')"
 
 # Tùy chọn Adreno GPU Driver
@@ -60,7 +58,12 @@ GITENV AGPU $DGPU
 [[ -n "$(grep 'Theo hệ thống' $TOME/1.ht)" ]] && DDPV="0"
 [[ -n "$(grep 'Chỉ đọc' $TOME/1.ht)" ]] && DDPV="erofs"
 [[ -n "$(grep 'Cho phép ghi đọc' $TOME/1.ht)" ]] && DDPV="ext4"
-GITENV Dinhdangphanvung $DDPV
+GITENV Loaihethong $DDPV
+
+# Gắn lên git env
+GITENV URL $URLKK
+GITENV NEMEROM "RROM_${DDPV}_${URL##*/}"
+GITENV DINHDANG "${URL##*.}"
 
 # Thêm tên tác giả khi flash Rom
 GITENV Tacgia "chamchamfy"
@@ -69,7 +72,7 @@ GITENV Tacgia "chamchamfy"
 GITENV SEVERUP "$(checktc Transfer)"
 
 # check url
-if [ "$URL" ];then
+if [ "$URL" ]; then
 
 (
 sudo apt-get update >/dev/null
@@ -81,15 +84,16 @@ pip3 install -r requirements.txt >/dev/null;
 
 
 Chatbot "- Bắt đầu tải ROM: $URL ...";
-Taiver "$URL" "$TOME/rom.zip" || Taive "$URL" "$TOME/rom.zip"
-[ ! -f "$TOME/rom.zip" ] && exit 0
+Taiver "$URL" "$TOME/rom.zip" 
+[ "$(du -m $TOME/rom.zip | awk '{print $1}')" -lt 1024 ] && Taive "$URL" "$TOME/rom.zip"
+[ ! -s "$TOME/rom.zip" ] && exit 0
 mv -f "$TOME/rom.zip" "$TOME/$NEMEROM"
-[ -e "$TOME/$NEMEROM" ] || echo "$TOME/lag"
+[ -s "$TOME/$NEMEROM" ] || echo "$TOME/lag"
 
 ) & (
 # Tải rom và tải file khác
 while true; do
-if [ "$(gh issue view $NUMBIE | grep -cm1 CLOSED)" == 1 ];then
+if [ "$(gh issue view $NUMBIE | grep -cm1 CLOSED)" == 1 ]; then
 Chatbot "Đã nhận được lệnh hủy quá trình."
 cancelrun
 exit 0

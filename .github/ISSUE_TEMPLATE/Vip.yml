@@ -22,7 +22,7 @@ body:
       label: Dùng Recovery mod
       description: |
         Dùng `Twrp`, hoặc `OrangeFox`
-        Lưu ý: Nếu chọn Fox một số rom sẽ không có sẵn nó sẽ tự chọn Twrp.
+        Lưu ý: Nếu chọn Fox một số rom sẽ không có sẵn.
       options:
         - Không thêm
         - OrangeFox
@@ -49,13 +49,16 @@ body:
   - type: checkboxes
     attributes:
       label: Tùy chọn
-      description: Tích vào ô bên dưới để thêm tính năng khi build rom.
+      description: Tích vào ô bên dưới để thêm tính năng khi build rom. Vá chứng chỉ chạy khi vá hệ thống được tích chọn. Nếu rom tùy chỉnh không nên chọn vá chứng chỉ do có thể không khởi động được!
       options:
         - label: "Thêm Tiếng Việt"
         - label: "Thêm GAPP"
         - label: "Thêm âm thanh HARMAN KARDON"
         - label: "Vá hệ thống"
+        - label: "Vá chứng chỉ"
         - label: "Bỏ mã hoá Rom"
+        - label: "Vá Permissive"
+        - label: "Cho phép đọc ghi vài phân vùng"
           required: false
   - type: dropdown
     attributes:
@@ -83,26 +86,9 @@ body:
     attributes:
       label: Xoá ứng dụng
       description: |
-        Tên thư mục ứng dụng ở /system/app/AiAsstVision, priv-app, product v.v
+        Tên thư mục ứng dụng ở /system/app/abc, priv-app, product v.v
         Thêm dấu # trước tên thư mục là không xóa ứng dụng đó như: #Calculator và được phân biệt bởi khoảng cách.
       render: shell
       value: |
-        #Calculator #Calendar #CleanMaster #Health #MIShare #MIShareGlobal #MIUIAod #MIUICalculator #MIUICalculatorGlobal #MIUICalendar #MIUICleanMaster #MIUICleanMasterGlobal-cleaner
-        #MIUICompass #MIUICompassGlobal #MIUIMusicGlobal #MIUINotes #MIUIPersonalAssistant #MIUIYellowPage #MIUIYellowPageGlobal #MiGalleryLockScreen #MiGalleryLockScreenGlobal #MiGalleryLockScreenGlobalT
-        #MiGalleryLockScreen-T #MiLink #MiLinkGlobal #MiRadio #MiuiAod #MiuiPersonalAssistant #MiuiPlayClient #MiuiWeather #MiuiYellowPage #PersonalAssistant #Weather #Wellbeing #ANGLE #AiAsstVision
-        #AiAsstVision_L2 #AiAsstVision_8550 AnalyticsCore AndroidAutoStub #AutoRegistration BaiduIME BasicDreams BookmarkProvider Browser Chrome Chrome64 #CloudPrint2 CtsShimPrebuilt #DMRegService
-        #DiracAudioControlService Driver Duo DynamicSystemInstallationService EasterEgg Email FusedLocationProvider #FamilyLinkParentalControls GameCenter GameCenterGlobal Gmail2 GoogleFeedback
-        GoogleLocationHistory GoogleNews GoogleOne GoogleOneTimeInitializer #HybridAccessory #HybridPlatform KSICibaEngine MIBrowserGlobal MIBrowserGlobal_removable MIBrowserGlobal_builtin_before_2021
-        MICOMMUNITY_OVERSEA MIFinance MIPlayClient MISTORE_OVERSEA MIService MIServiceGlobal MITSMClient #MIUIAICR MIUIAiasstService MIUIBrowser #MIUIBarrage #MIUIBarrageV2 MIUIDriveMode MIUIDuokanReader
-        MIUIEmail MIUIGameCenter #MIUIGlobalMinusScreenWidget MIUIHuanji MIUIMiDrive MIUIMiPicks MIUIMusic MIUIMusicT MIUINewHome MIUINewHome_Removable MIUIQuickSearchBox MIUIReporter MIUIScanner
-        #MIUISuperMarket #MIUISuperMarket_M2_M3 MIUISystemAppUpdater MIUIVideo MIUIVideoPlayer MIUIVipAccount MIUIVipService MIUIVirtualSim MIUIXiaoAiSpeechEngine MIUIXiaoAiSpeechEngine-matisse
-        MIUIYoupin MIUIgreenguard MIpay MINextPay #MiAONService MSA MSA-Global Magisk Maps Meet MarkupGoogle MiBrowser MiBugReport MiCreditInStub MiGameCenterGlobal MiGameCenterSDKService MiGameService
-        MiGameService_8550 MiLiveAssistant MiMobileNoti MiMover MiService MiShop MipayService Mirror #MiRadio MiuiAudioMonitor MiuiBugReport MiuiBugReportGlobal MiuiCompass #MiuiContentExtension MiuiDaemon
-        MuiScanner MiuiVideoGlobal MiuiVipService Miuigreenguard ModemTestBox Music NewHome NextPay Notes ONS Opera PacProcessor PaymentService PaymentService_Global PersonalSafety PhotoTable Photos
-        #PlatformNetworkPermissionConfig #PlayAutoInstallStubApp Podcasts Protips ProxyHandler QuickSearchBox QuickSearchBox_M2M3 RideModeAudio #SecureElement SimAppDialog SmartHome SmartTravel #SogouInput
-        SoundPickerGoogle Stk SystemAppUpdater SystemHelper TSMClient #Tag ThirdAppAssistant Traceur TranslationService UPTsmService UserDictionaryProvider Videos VipAccount VirtualSim VoiceAssist
-        VoiceAssistAndroidT VoiceTrigger VsimCore WAPPushManager WMService WfdService XMCloudEngine XMPass Xinre XiaoAiSpeechEngine XiaoaiEdgeEngine XiaoaiRecommendation YTMusic YouDaoEngine YouTube
-        aiasst_service com.google.mainline.adservices com.iflytek.inputmethod.miui com.miui.qr dpmserviceapp facebook-appmanager facebook-installer facebook-services greenguard mab mi_connect_service
-        slaservice talkback tv.danmaku.bili_26 #xdivert
-
+        #Calculator #Calendar #CleanMaster #Health  #MIShare #MIShareGlobal #MIUIAod #MIUICalculator #MIUICalculatorGlobal #MIUICalendar #MIUICleanMaster  #MIUICleanMasterGlobal-cleaner #MIUICompass #MIUICompassGlobal #MIUIMusicGlobal #MIUINotes #MIUIPersonalAssistant #MIUIYellowPage #MIUIYellowPageGlobal #MiGalleryLockScreen #MiGalleryLockScreenGlobal #MiGalleryLockScreenGlobalT #MiGalleryLockScreen-T #MIGalleryLockscreen-MIUI15 #MiLink #MiLinkGlobal #MiRadio  #MiuiAod #MiuiPersonalAssistant #MiuiPlayClient #MiuiWeather  #MiuiYellowPage NewHomeMIUI15 #iFlytekIME #PersonalAssistant #Weather  #Wellbeing #ANGLE #AiAsstVision #AiAsstVision_L2 #AiAsstVision_8550 AnalyticsCore AndroidAutoStub AutoRegistration BaiduIME BasicDreams BookmarkProvider Browser  Chrome Chrome64 #CloudPrint2  CtsShimPrebuilt DMRegService #DiracAudioControlService Drive Duo DynamicSystemInstallationService EasterEgg Email  FusedLocationProvider #FamilyLinkParentalControls GameCenter GameCenterGlobal Gmail2 GoogleFeedback  GoogleLocationHistory  GoogleNews GoogleOne GoogleOneTimeInitializer  #HybridAccessory #HybridPlatform KSICibaEngine  MIBrowserGlobal  MIBrowserGlobal_removable MIBrowserGlobal_builtin_before_2021 MICOMMUNITY_OVERSEA MIFinance MIPlayClient MISTORE_OVERSEA MIService MIServiceGlobal MITSMClient #MIUIAICR MIUIAiasstService MIUIBrowser #MIUIBarrage #MIUIBarrageV2 MIUIDriveMode MIUIDuokanReader MIUIEmail  MIUIGameCenter #MIUIGlobalMinusScreenWidget MIUIHuanji MIUIMiDrive MIUIMiPicks MIUIMusic MIUIMusicT MIUINewHome MIUINewHome_Removable MIUIQuickSearchBox MIUIReporter MIUIScanner #MIUISuperMarket #MIUISuperMarket_M2_M3 MIUISystemAppUpdater MIUIVideo MIUIVideoPlayer MIUIVipAccount MIUIVipService MIUIVirtualSim MIUIXiaoAiSpeechEngine MIUIXiaoAiSpeechEngine-matisse MIUIYoupin MIUIgreenguard MIpay MINextPay #MiAONService MSA MSA-Global Magisk Maps Meet MarkupGoogle  MiBrowser MiBugReport MiCreditInStub MiGameCenterGlobal MiGameCenterSDKService MiGameService MiGameService_8550 MiLiveAssistant MiMobileNoti  MiMover MiService MiShop MipayService Mirror #MiRadio #MiuiAudioMonitor MiuiBugReport MiuiBugReportGlobal MiuiCompass #MiuiContentExtension MiuiDaemon MiuiScanner MiuiVideoGlobal  MiuiVipService Miuigreenguard ModemTestBox Music  NewHome NextPay Notes ONS Opera PacProcessor PaymentService PaymentService_Global PersonalSafety PhotoTable Photos #PlatformNetworkPermissionConfig Podcasts Protips ProxyHandler QuickSearchBox QuickSearchBox_M2M3 RideModeAudio #SecureElement SimAppDialog SmartHome SmartTravel SogouInput SoundPickerGoogle  Stk SystemAppUpdater SystemHelper TSMClient #Tag ThirdAppAssistant Traceur TranslationService UPTsmService UserDictionaryProvider  Videos VipAccount  VirtualSim  VoiceAssist VoiceAssistAndroidT VoiceTrigger VsimCore WAPPushManager WMService WfdService XMCloudEngine XMPass Xinre  XiaoAiSpeechEngine XiaoaiEdgeEngine XiaoaiRecommendation YTMusic YouDaoEngine  YouTube aiasst_service com.google.mainline.adservices com.iflytek.inputmethod.miui com.miui.qr dpmserviceapp facebook-appmanager facebook-installer facebook-services greenguard mab  mi_connect_service slaservice  talkback tv.danmaku.bili_26 #xdivert #messaging #Messages_arm64_xxhdpi #GoogleDialer_arm64 GoogleOne_arm64 #AndroidSystemIntelligence_Infrastructure_arm64 #PrivateComputeServices_arm64 #GoogleContacts_xxhdpi GoogleNews_xxhdpi #GlobalWPSLITE MicrosoftOneDrive #CalendarGoogle #MiuiCalendarGlobalPad #SearchSelector
       

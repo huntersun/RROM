@@ -1,4 +1,4 @@
-name: VH-OS
+name: RROM
 on: 
   workflow_dispatch:
   issues:
@@ -16,21 +16,21 @@ jobs:
       GH_TOKEN: ${{ github.token }}
     steps:
       - name: Dữ liệu
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: 'Tải về'
         run: |
-          # Taive          
+          # Taive 
           bash .github/Taive.sh 2>&1 | tee -a log.txt
       - name: 'Xem build ROM'
         run: |
-          # CC          
+          # CC 
           bash .github/Chay.sh 2>&1 | tee -a log.txt
       - name: Upload
         run: |
-          # kakathic         
+          # kakathic & chamchamfy 
           bash .github/Upload.sh 2>&1 | tee -a log.txt
       - name: Lưu Log
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
          name: Xem Log
          path: log.txt
